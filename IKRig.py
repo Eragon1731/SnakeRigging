@@ -1,6 +1,4 @@
 import maya.cmds as mc
-import Utils
-reload(Utils)
 
 CTRL_SCALE = 1
 
@@ -76,9 +74,9 @@ def createControllers (selected, ctrl_scale=CTRL_SCALE, createXtra_grp=False):
     for i in range(len(currlist)):
 
         #  make new names for ctrls, groups and parents
-        ctrlname = Utils.addSuffix(currlist[i], "ctrl", "_")
-        grpname = Utils.addSuffix(currlist[i], "grp", "_")
-        parentname = Utils.addSuffix(currlist[i], "par", "_")
+        ctrlname = addSuffix(currlist[i], "ctrl", "_")
+        grpname = addSuffix(currlist[i], "grp", "_")
+        parentname = addSuffix(currlist[i], "par", "_")
 
         # get joint position to create controllers at correct positions
         jnt_pos = mc.xform(currlist[i], q=True, translation=True, ws=True)
@@ -108,3 +106,8 @@ def createControllers (selected, ctrl_scale=CTRL_SCALE, createXtra_grp=False):
         grpnames.append(grpname)
 
     return grpnames, ctrlnames
+
+
+def addSuffix(selected, suffix, separator):
+    newtemp = selected + separator + suffix
+    return newtemp
