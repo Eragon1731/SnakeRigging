@@ -1,40 +1,9 @@
 import maya.cmds as mc
 
 CTRL_SCALE = 1
-
-"""
-Create and return a center locator for the bulb so the petals can be built relative to its center
-"""
-
-
-def createCenterLocatorController(selected=None, orient=True):
-
-    # find the center of the bulb
-    center_pos = mc.xform(selected[0], q=True, t=True)
-
-    # create the name for the locator depending on the bulb's name
-    center_name = selected[0] + "_loc"
-
-    # make the locator and set it at the correct position and with a new name
-    center_loc = mc.spaceLocator(p=center_pos, n=center_name)
-    mc.makeIdentity(selected, apply=True, translate=True)
-
-    # temporary container for locator
-    loc = center_loc
-
-    # if the locator needs to be oriented, orient it
-    if(orient):
-        mc.orientConstraint(center_loc, selected, mo=1)
-
-    # rename the bulb with a "_geo" to mark it as a model
-    mc.rename(selected[0], selected[0]+"_geo")
-
-    # if the bulb is separated into parts without a group, group all parts together
-    if mc.ls(selected[0]) > 0:
-        mc.group(selected[0] + "_geo", center_loc, name=Utils.changeSuffix(selected[0], "geo", "", "_"))
-
-    return loc
-
+#
+# def createIKHandle(name, first_jnt, last_jnt, curve):
+#     mc.ikHandle(name=name, sj=first_jnt, ee=last_jnt, c=curve)
 
 """
 This function creates a rig that will bend the petal in a Linear manner. The root jnt is
@@ -42,15 +11,15 @@ at the bottom of the petal and there is a single chain going up the petal
 """
 
 
-def createLinearSpineControllers(fk_joints=None, ctrl_scale=CTRL_SCALE, createXtra_grp=False):
+def createLinearSpineControllers(fk_joints=None, search_text = "cluster", ctrl_scale=CTRL_SCALE, createXtra_grp=False):
 
     # create the ctrls and groups for all joints
-    grps, names = createControllers(selected=fk_joints, ctrl_scale=ctrl_scale,
+    grps, names = createControllers(selected=fk_joints, search_text=search_text, ctrl_scale=ctrl_scale,
                                     createXtra_grp=createXtra_grp)
 
     # parent the groups in order to create a linear chain/spine of fk ctrls
-    for i in range(1, len(grps)):
-        mc.parent(grps[i], names[i - 1])
+    # for i in range(1, len(grps)):
+    #     mc.parent(grps[i], names[i - 1])
 
     # return the grp and controller names so that the Flower instance can refer back to them for animation/clear
     # keyframes
@@ -62,10 +31,10 @@ Create controllers for all petal joints for rigging and animation
 """
 
 
-def createControllers (selected, ctrl_scale=CTRL_SCALE, createXtra_grp=False):
+def createControllers (selected, search_text, ctrl_scale=CTRL_SCALE, createXtra_grp=False):
 
     # get all joints for rigging
-    currlist = [x for x in selected if "joint" in x]
+    currlist = [x for x in selected if search_text in x]
 
     ctrlnames = []
     grpnames = []
@@ -82,7 +51,7 @@ def createControllers (selected, ctrl_scale=CTRL_SCALE, createXtra_grp=False):
         jnt_pos = mc.xform(currlist[i], q=True, translation=True, ws=True)
 
         # create and place controller into groups
-        ctrl = mc.circle(n=ctrlname, r=ctrl_scale, normal=(0, 1, 0))[0]
+        ctrl = mc.circle(n=ctrlname, r=ctrl_scale, normal=(1, 0, 0))[0]
         grp = mc.group(ctrl, n=grpname)
 
         # if an extra group is needed for padding, make one

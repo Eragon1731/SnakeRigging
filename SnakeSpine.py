@@ -11,9 +11,12 @@ class SnakeSpine:
     def __init__(self, name):
 
         self.name = name
+        self.curve = ""
+
         self.joints = []
         self.clusters = []
-
+        self.groups = []
+        self.controllers = []
 
     def duplicateSpine(self, selected = None):
 
@@ -29,18 +32,39 @@ class SnakeSpine:
         templist.append(last_joint)
         #print "temp:", templist
 
-        for i in (range(len(templist))):
+        for i in reversed(range(len(templist))):
             tempname = mc.rename(templist[i],  self.name + "_anim_joint_" + str(i))
             print tempname
             self.joints.append(tempname)
 
+        return len(self.joints)
+
     def createControllers(self):
-         IKRig.createLinearSpineControllers(self.joints)
+        if self.clusters is None:
+            self.clusters = mc.ls(sl=1)
+            print self.clusters
 
-    def createClusters(self):
+        self.groups, self.controllers = IKRig.createLinearSpineControllers(self.clusters)
 
-        print "self.joints:", self.joints
+        for (cluster, controller) in zip(self.clusters, self.controllers):
+            mc.parent(cluster, controller)
+
+        return self.controllers
+
+    def createClusters(self, num_cv=6, curve=None):
+
+        if curve is None:
+            curve = mc.ls(sl=True)[0]
+
+        print "curve: ", curve
+        self.curve = curve
+
         # find all the joints in petal loaded into scene
-        for joint in self.joints:
-            temp = mc.cluster(joint)
-            self.clusters.append(temp)
+        for i in range(num_cv):
+            temp = mc.getAttr(str(curve) + ".cv[" + str(i) + "]")
+            print temp
+            cluster = mc.cluster(str(curve)+".cv["+str(i)+"]")
+            self.clusters.append(cluster)
+
+        print "clusters ", self.clusters
+
