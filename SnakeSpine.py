@@ -40,9 +40,13 @@ class SnakeSpine:
         return len(self.joints)
 
     def createControllers(self):
-        if self.clusters is None:
+
+        if len(self.clusters) == 0:
             self.clusters = mc.ls(sl=1)
-            print self.clusters
+        else:
+            print "not empty"
+
+        print self.clusters
 
         self.groups, self.controllers = IKRig.createLinearSpineControllers(self.clusters)
 

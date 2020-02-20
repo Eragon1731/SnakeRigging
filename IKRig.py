@@ -48,10 +48,13 @@ def createControllers (selected, search_text, ctrl_scale=CTRL_SCALE, createXtra_
         parentname = addSuffix(currlist[i], "par", "_")
 
         # get joint position to create controllers at correct positions
-        jnt_pos = mc.xform(currlist[i], q=True, translation=True, ws=True)
+        #jnt_pos = mc.xform(currlist[i], q=True, translation=True, os=True)
+        jnt_pos = mc.getAttr(str(currlist[i]) + ".origin")
+
+        print "jnt_pos is ", list(jnt_pos[0])[0]
 
         # create and place controller into groups
-        ctrl = mc.circle(n=ctrlname, r=ctrl_scale, normal=(1, 0, 0))[0]
+        ctrl = mc.circle(n=ctrlname, r=ctrl_scale, normal=(0, 0, 1))[0]
         grp = mc.group(ctrl, n=grpname)
 
         # if an extra group is needed for padding, make one
@@ -59,7 +62,7 @@ def createControllers (selected, search_text, ctrl_scale=CTRL_SCALE, createXtra_
             grp = mc.group(grp, name=grpname + "_outerGrp")
 
         # adjust the controllers to the positions and sizes needed
-        mc.move(jnt_pos[0], jnt_pos[1], jnt_pos[2], grp, a=True)
+        mc.move(list(jnt_pos[0])[0], list(jnt_pos[0])[1], list(jnt_pos[0])[2], grp, a=True)
         ctrl_cvs = mc.ls(ctrlname + ".cv[*]")
         mc.scale(ctrl_scale, ctrl_scale, ctrl_scale, ctrl_cvs)
 
