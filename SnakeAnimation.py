@@ -51,3 +51,61 @@ def smartAttachtoMotionPath(curve, targets):
 
         mp = mc.createNode('motionPath')
         curveShape.worldSpace.connect(mp.geometryPath)
+
+
+def motionPath_SineOffset(curve, targets, axis = 'X'):
+    try:
+        curve.name()
+    except:
+        curve = mc.PyNode(curve)
+
+    curve.addAttr('sineAmplitude', k=1)
+    curve.addAttr('sineFrquency', k=1)
+    curve.addAttr('sineOffset', k=1)
+
+    for target in targets:
+        try:
+            target.type()
+        except:
+            target = mc.PyNode(target)
+
+        children = mc.listRelatives(target, c=1)
+        offsetGrp = mc.group(em=1, n=target +'_sineOffset')
+        pc = mc.parentConstraint(target, offsetGrp)
+        mc.delete(pc)
+        mc.parent(offsetGrp, target)
+        controller = False
+
+        for child in children:
+            mc.parent(child, offsetGrp)
+
+            for c in child.listRelatives(ad=1):
+                shapes = c.listRelatives(s=1)
+                if shapes is not None:
+                    for s in shapes:
+                        if s.type() == 'nurbsCurve':
+                            controller = c
+                            break
+        controller.addAttr('sineBlend', k=1)
+        controller.sineBlend.set(1,0)
+
+        pma = mc.createNode('plushMinusAverage')
+        md = mc.createNode('multipleDivide')
+        math = mc.createNode('asdkMathNode')
+        target.pathU.connect(pma.input2D[0].input2Dx)
+        offsetMult = mc.createNode('multiplyDivide')
+        curve.sineOffset.connect(offsetMult.input1X)
+        offsetMult.input2X.set(0.01)
+        offsetMult.outputX.connect(pma.input2D[1].input2Dx)
+        curve.sineAmplitude.connect(md.input1X)
+        controller.sineBlend.connect(md.imput2X)
+
+        mc.connectAttr(md.name() +'.outputX', math.name()+ +'aIn')
+        mc.connectAttr(curve.name()+'.sineFrequency', math.name()+'.bIn')
+        mc.connectAttr(pma.name()+'.output2Dx', math.name()+'.cIn')
+        mc.setAttr(math.name()+'.expression', 'sin(c*b)*a', type = 'string')
+        mc.connectAttr(math.name()+'.result', offsetGrp.name()+'.t'+axis)
+
+
+
+
